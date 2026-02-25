@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StudyPulse — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header>
+  <h1>📚 StudyPulse</h1>
+  <div class="header-right">
+    <span class="user-badge" id="user-badge">Loading...</span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<nav>
+  <a href="dashboard.html">🏠 Dashboard</a>
+  <a href="add_course.html">📖 My Courses</a>
+  <a href="log_session.html">⏱ Log Session</a>
+</nav>
+
+<div class="container">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div class="section-title" style="margin:0">📊 Course Progress — AI Analysis</div>
+    <button class="btn btn-primary btn-sm" onclick="loadDashboard()" style="display:flex;align-items:center;gap:6px;">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <div class="cards-grid" id="dashboard-cards">
+    <!-- Populated by dashboard.js -->
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="js/auth.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

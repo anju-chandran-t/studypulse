@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StudyPulse — Log Session</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+
+    /* ── Tab Toggle ─────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      background: var(--primary-light);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 24px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--primary);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 8px rgba(79,70,229,0.3);
+    }
+
+    /* ── Timer Display ──────────────────────────── */
+    .timer-wrap {
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+
+    .timer-display {
+      font-size: 4rem;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s;
+      font-family: 'Courier New', monospace;
+    }
+
+    .timer-display.running {
+      color: var(--primary);
+    }
+
+    .timer-display.pulse {
+      transform: scale(1.04);
+      transition: transform 0.15s ease-in-out;
+    }
+
+    .timer-status {
+      margin-top: 8px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      min-height: 20px;
+    }
+
+    /* ── Timer Buttons ──────────────────────────── */
+    .timer-btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .btn-start {
+      background: #dcfce7;
+      color: #15803d;
+      border: 2px solid #86efac;
+      padding: 12px 32px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-start:hover {
+      background: #bbf7d0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(34,197,94,0.25);
+    }
+
+    .btn-stop {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 2px solid #fca5a5;
+      padding: 12px 32px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-stop:hover {
+      background: #fecaca;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(239,68,68,0.25);
+    }
+
+    .btn-reset {
+      background: #f3f4f6;
+      color: var(--muted);
+      border: 2px solid var(--border);
+      padding: 12px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-reset:hover { background: var(--border); }
+
+    /* ── Confirm Save Panel ─────────────────────── */
+    .confirm-panel {
+      display: none;
+      margin-top: 24px;
+      background: var(--primary-light);
+      border: 2px solid #c7d2fe;
+      border-radius: 14px;
+      padding: 20px 24px;
+    }
+
+    .confirm-panel h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 14px;
+    }
+
+    .confirm-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .confirm-row span:first-child { color: var(--muted); }
+    .confirm-row span:last-child { font-weight: 700; }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    /* ── Timer locked select ────────────────────── */
+    select.timer-locked {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    /* ── Divider ────────────────────────────────── */
+    .timer-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📚 StudyPulse</h1>
+  <div class="header-right">
+    <span class="user-badge" id="user-badge">Loading...</span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<nav>
+  <a href="dashboard.html">🏠 Dashboard</a>
+  <a href="add_course.html">📖 My Courses</a>
+  <a href="log_session.html">⏱ Log Session</a>
+</nav>
+
+<div class="container">
+
+  <!-- Log Session Card with Tabs -->
+  <div class="card">
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-manual" onclick="switchTab('manual')">
+        ✏️ Manual Entry
+      </button>
+      <button class="tab-btn" id="tab-timer" onclick="switchTab('timer')">
+        ⏱ Study Timer
+      </button>
+    </div>
+
+    <!-- ── Panel: Manual Entry ──────────────────── -->
+    <div id="panel-manual">
+      <div class="section-title">✏️ Log Hours Manually</div>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="course-select">Course</label>
+          <select id="course-select" disabled>
+            <option value="">Loading courses...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="hours-input">Hours Studied</label>
+          <input type="number"
+                 id="hours-input"
+                 placeholder="e.g. 1.5"
+                 min="0.25"
+                 step="0.25" />
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="notes-input">Notes (optional)</label>
+          <input type="text"
+                 id="notes-input"
+                 placeholder="e.g. Covered linked lists and binary trees" />
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <button class="btn btn-primary" id="log-btn" onclick="logSession()">
+            Log Session →
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Panel: Timer ─────────────────────────── -->
+    <div id="panel-timer" style="display:none">
+      <div class="section-title">⏱ Study Timer</div>
+
+      <!-- Course selector for timer -->
+      <div class="form-group">
+        <label for="timer-course-select">Select Course to Study</label>
+        <select id="timer-course-select" disabled>
+          <option value="">Loading courses...</option>
+        </select>
+      </div>
+
+      <hr class="timer-divider" />
+
+      <!-- Clock display -->
+      <div class="timer-wrap">
+        <div class="timer-display" id="timer-display">00:00:00</div>
+        <div class="timer-status" id="timer-status">Select a course and press Start</div>
+      </div>
+
+      <!-- Timer control buttons -->
+      <div class="timer-btn-row">
+        <button class="btn-start" id="start-btn" onclick="startTimer()">
+          ▶ Start
+        </button>
+        <button class="btn-stop" id="stop-btn" onclick="stopTimer()">
+          ⏹ Stop
+        </button>
+        <button class="btn-reset" onclick="resetTimer()">
+          ↺ Reset
+        </button>
+      </div>
+
+      <!-- Confirm & Save Panel (appears after Stop) -->
+      <div class="confirm-panel" id="confirm-panel">
+        <h4>💾 Save this session?</h4>
+
+        <div class="confirm-row">
+          <span>Course</span>
+          <span id="confirm-course">—</span>
+        </div>
+        <div class="confirm-row">
+          <span>Time Studied</span>
+          <span id="confirm-time">—</span>
+        </div>
+
+        <div class="form-group" style="margin-top:14px;">
+          <label for="timer-notes">Notes (optional)</label>
+          <input type="text"
+                 id="timer-notes"
+                 placeholder="What did you cover in this session?" />
+        </div>
+
+        <div class="confirm-actions">
+          <button class="btn btn-primary" id="save-timer-btn" onclick="saveTimerSession()">
+            💾 Save Session
+          </button>
+          <button class="btn btn-danger" onclick="resetTimer()">
+            ✕ Discard
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <!-- end panel-timer -->
+
+  </div>
+  <!-- end card -->
+
+  <!-- Recent Sessions Table -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div class="section-title" style="margin:0">📋 Recent Sessions (Last 20)</div>
+      <button class="btn btn-primary btn-sm" onclick="loadRecentSessions()">🔄 Refresh</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Course</th>
+          <th>Duration</th>
+          <th>Notes</th>
+          <th>ID</th>
+        </tr>
+      </thead>
+      <tbody id="sessions-tbody">
+        <tr>
+          <td colspan="5" style="text-align:center; color:var(--muted); padding:20px;">
+            Loading sessions...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="js/auth.js"></script>
+<script src="js/sessions.js"></script>
+</body>
+</html>

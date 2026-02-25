@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: studypulse_mssql
+    environment:
+      SA_PASSWORD: "YourStrong@Password123"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"           # Free Developer edition
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost",
+             "-U", "sa", "-P", "YourStrong@Password123", "-Q", "SELECT 1"]
+      interval: 10s
+      retries: 10
+      start_period: 30s
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: studypulse_db_init
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./database/init.sql:/init.sql
+    entrypoint: >
+      /bin/bash -c "
+        /opt/mssql-tools/bin/sqlcmd -S db -U sa -P 'YourStrong@Password123' -i /init.sql &&
+        echo 'DB initialized ✅'
+      "
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: studypulse_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: "mssql+pyodbc://sa:YourStrong%40Password123@db:1433/studypulse?driver=ODBC+Driver+17+for+SQL+Server"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+volumes:
+  mssql_data:
