@@ -100,12 +100,7 @@ uvicorn main:app --reload
 
 ### 3. Open the Frontend
 
-Open `frontend/index.html` in a browser, or serve with:
-```bash
-cd frontend && python -m http.server 5500
-# Visit: http://localhost:5500
-```
-
+Open `frontend/index.html` in a browser
 ---
 
 ## 🔑 API Endpoints

@@ -12,7 +12,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Allow frontend (HTML files) to call the API
+# Allow frontend (HTML files) to call the API 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, restrict to your domain
